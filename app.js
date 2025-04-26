@@ -29,6 +29,41 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.post('/register', async (req, res) => {
+  const { username: nombre, email, password: contrasena } = req.body;
+
+  if (!nombre || !email || !contrasena) {
+    return res.status(400).json({ success: false, message: 'Faltan campos requeridos' });
+  }
+  
+
+  try {
+    // Verificar si ya existe un usuario con ese email
+    const existingUser = await pool.query(
+      'SELECT * FROM usuarios WHERE email = $1',
+      [email]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ success: false, message: 'El correo ya está registrado' });
+    }
+
+    // Insertar el nuevo usuario
+    const id = `user_${Date.now()}`; // Puedes usar uuid también
+    await pool.query(
+      'INSERT INTO usuarios (id, nombre, email, contrasena) VALUES ($1, $2, $3, $4)',
+      [id, nombre, email, contrasena]
+    );
+    
+
+    res.status(201).json({ success: true, message: 'Registro exitoso' });
+  } catch (error) {
+    console.error('Error en registro:', error);
+    res.status(500).json({ success: false, message: 'Error del servidor' });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
