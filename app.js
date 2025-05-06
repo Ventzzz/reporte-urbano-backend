@@ -49,6 +49,7 @@ app.post('/register', async (req, res) => {
     }
 
     //const id = `user_${Date.now()}`;
+    const id = Math.floor(Math.random * 1000);
     await pool.query(
       'INSERT INTO usuarios (id, nombre, contrasena) VALUES ($1, $2, $3)',
       [id, username, password]
