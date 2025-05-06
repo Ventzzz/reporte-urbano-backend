@@ -9,12 +9,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// LOGIN
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE nombre = $1 AND contrasena = $2',
+      'SELECT * FROM usuarios WHERE nombre = $1 AND contraseña = $2',
       [username, password]
     );
 
@@ -29,32 +30,29 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// REGISTER
 app.post('/register', async (req, res) => {
-  const { username: nombre, email, password: contrasena } = req.body;
+  const { username, password } = req.body;
 
-  if (!nombre || !email || !contrasena) {
+  if (!username || !password) {
     return res.status(400).json({ success: false, message: 'Faltan campos requeridos' });
   }
-  
 
   try {
-    // Verificar si ya existe un usuario con ese email
     const existingUser = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1',
-      [email]
+      'SELECT * FROM usuarios WHERE nombre = $1',
+      [username]
     );
 
     if (existingUser.rows.length > 0) {
-      return res.status(409).json({ success: false, message: 'El correo ya está registrado' });
+      return res.status(409).json({ success: false, message: 'El nombre de usuario ya existe' });
     }
 
-    // Insertar el nuevo usuario
-    const id = `user_${Date.now()}`; // Puedes usar uuid también
+    const id = `user_${Date.now()}`;
     await pool.query(
-      'INSERT INTO usuarios (id, nombre, email, contrasena) VALUES ($1, $2, $3, $4)',
-      [id, nombre, email, contrasena]
+      'INSERT INTO usuarios (id, nombre, contraseña) VALUES ($1, $2, $3)',
+      [id, username, password]
     );
-    
 
     res.status(201).json({ success: true, message: 'Registro exitoso' });
   } catch (error) {
@@ -62,7 +60,6 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error del servidor' });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
