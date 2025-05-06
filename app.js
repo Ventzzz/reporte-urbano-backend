@@ -50,7 +50,7 @@ app.post('/register', async (req, res) => {
 
     const id = `user_${Date.now()}`;
     await pool.query(
-      'INSERT INTO usuarios (id, nombre, contraseña) VALUES ($1, $2, $3)',
+      'INSERT INTO usuarios (id, nombre, contrasena) VALUES ($1, $2, $3)',
       [id, username, password]
     );
 
