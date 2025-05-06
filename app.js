@@ -48,7 +48,7 @@ app.post('/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'El nombre de usuario ya existe' });
     }
 
-    const id = `user_${Date.now()}`;
+    //const id = `user_${Date.now()}`;
     await pool.query(
       'INSERT INTO usuarios (id, nombre, contrasena) VALUES ($1, $2, $3)',
       [id, username, password]
