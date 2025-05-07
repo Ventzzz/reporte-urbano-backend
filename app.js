@@ -48,11 +48,9 @@ app.post('/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'El nombre de usuario ya existe' });
     }
 
-    //const id = `user_${Date.now()}`;
-    const id = Math.floor(Math.random() * 1000);
     await pool.query(
-      'INSERT INTO usuarios (id, nombre, contrasena) VALUES ($1, $2, $3)',
-      [id, username, password]
+      'INSERT INTO usuarios (nombre, contrasena) VALUES ($1, $2)',
+      [username, password]
     );
 
     res.status(201).json({ success: true, message: 'Registro exitoso' });
