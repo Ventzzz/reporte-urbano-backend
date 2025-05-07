@@ -87,9 +87,9 @@ app.post('/hacerDenuncia', async (req, res) => {
     // Insertar la denuncia en la base de datos
     const buffer = Buffer.from(imagen.split(',')[1], 'base64'); // Elimina el prefijo "data:image/png;base64,"
     await pool.query(
-      `INSERT INTO denuncia (imagen, tipoDenuncia, descripcion, latitud, longitud, usuarios_id) 
+      `INSERT INTO denuncia (tipoDenuncia, imagen, descripcion, latitud, longitud, usuarios_id) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [buffer, tipoDenuncia, descripcion || null, latitud, longitud, usuarios_id]
+      [tipoDenuncia, buffer, descripcion || null, latitud, longitud, usuarios_id]
     );
 
     res.status(201).json({ success: true, message: 'Denuncia registrada exitosamente' });
