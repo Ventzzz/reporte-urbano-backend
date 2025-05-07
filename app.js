@@ -60,6 +60,41 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.post('/hacerDenuncia', async (req, res) => {
+  const { imagen, tipoDenuncia, descripcion, latitud, longitud, username } = req.body;
+
+  // Validar campos obligatorios
+  if (!imagen || !tipoDenuncia || !latitud || !longitud || !username) {
+    return res.status(400).json({ success: false, message: 'Faltan campos requeridos' });
+  }
+
+  try {
+    // Obtener el usuarios_id basado en el username
+    const userResult = await pool.query(
+      'SELECT id FROM usuarios WHERE nombre = $1',
+      [username]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    const usuarios_id = userResult.rows[0].id;
+
+    // Insertar la denuncia en la base de datos
+    await pool.query(
+      `INSERT INTO denuncia (imagen, tipoDenuncia, descripcion, latitud, longitud, usuarios_id) 
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [imagen, tipoDenuncia, descripcion || null, latitud, longitud, usuarios_id]
+    );
+
+    res.status(201).json({ success: true, message: 'Denuncia registrada exitosamente' });
+  } catch (error) {
+    console.error('Error al registrar la denuncia:', error);
+    res.status(500).json({ success: false, message: 'Error del servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
