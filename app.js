@@ -89,7 +89,7 @@ app.post('/hacerDenuncia', async (req, res) => {
     await pool.query(
       `INSERT INTO denuncia (tipoDenuncia, imagen, descripcion, usuarios_id, latitud, longitud) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [tipoDenuncia, buffer, descripcion || null, latitud, longitud, usuarios_id]
+      [tipoDenuncia, buffer, descripcion || null, usuarios_id, latitud, longitud]
     );
 
     res.status(201).json({ success: true, message: 'Denuncia registrada exitosamente' });
