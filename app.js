@@ -99,13 +99,12 @@ app.post('/hacerDenuncia', async (req, res) => {
   }
 });
 
-app.get('/denuncia/imagen/:id', async (req, res) => {
+app.get('/denuncia/imagen/', async (req, res) => {
   const { id } = req.params;
 
   try {
     const result = await pool.query(
-      'SELECT imagen FROM denuncia WHERE id = $1',
-      [id]
+      'SELECT * FROM denuncia',
     );
 
     if (result.rows.length === 0) {
