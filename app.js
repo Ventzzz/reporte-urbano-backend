@@ -99,6 +99,29 @@ app.post('/hacerDenuncia', async (req, res) => {
   }
 });
 
+app.get('/denuncia/imagen/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT imagen FROM denuncia WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Imagen no encontrada' });
+    }
+
+    const imagen = result.rows[0].imagen;
+
+    res.set('Content-Type', 'image/png'); // Cambia a image/jpeg si tus imágenes son jpg
+    res.send(imagen);
+  } catch (error) {
+    console.error('Error al obtener la imagen:', error);
+    res.status(500).json({ success: false, message: 'Error del servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
