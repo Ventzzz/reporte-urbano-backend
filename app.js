@@ -126,7 +126,7 @@ app.get('/denuncia/imagen/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM denuncia WHERE id = $1',
+      'SELECT imagen FROM denuncia WHERE id = $1',
       [id]
     );
 
