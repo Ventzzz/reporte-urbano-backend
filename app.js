@@ -6,6 +6,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 // Aumentar el límite del tamaño del cuerpo
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -63,8 +67,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/hacerDenuncia', async (req, res) => {
-  const { imagen, tipoDenuncia, descripcion, latitud, longitud, username } = req.body;
+app.post('/hacerDenuncia', upload.single('imagen'), async (req, res) => {
+  const { tipoDenuncia, descripcion, latitud, longitud, username } = req.body;
+  const imagen = req.file;
 
   // Validar campos obligatorios
   if (!imagen || !tipoDenuncia || !latitud || !longitud || !username) {
@@ -85,11 +90,10 @@ app.post('/hacerDenuncia', async (req, res) => {
     const usuarios_id = userResult.rows[0].id;
 
     // Insertar la denuncia en la base de datos
-    const buffer = Buffer.from(imagen.split(',')[1], 'base64'); // Elimina el prefijo "data:image/png;base64,"
     await pool.query(
       `INSERT INTO denuncia (tipoDenuncia, imagen, descripcion, usuarios_id, latitud, longitud) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [tipoDenuncia, buffer, descripcion || null, usuarios_id, latitud, longitud]
+      [tipoDenuncia, imagen.buffer, descripcion || null, usuarios_id, latitud, longitud]
     );
 
     res.status(201).json({ success: true, message: 'Denuncia registrada exitosamente' });
