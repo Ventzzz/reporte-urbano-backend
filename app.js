@@ -171,8 +171,7 @@ app.get('/traerDenuncia/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, tipodenuncia, descripcion, usuarios_id, latitud, longitud, likes, fecha_denuncia
-       FROM denuncia WHERE id = $1`,
+      `SELECT * FROM denuncia WHERE id = $1`,
       [id]
     );
 
