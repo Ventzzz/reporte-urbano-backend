@@ -166,6 +166,27 @@ app.post('/run-sql', async (req, res) => {
   }
 });
 
+app.get('/traerDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, tipodenuncia, descripcion, usuarios_id, latitud, longitud, likes, fecha_denuncia
+       FROM denuncia WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al obtener la denuncia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
