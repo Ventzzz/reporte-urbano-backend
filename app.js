@@ -189,6 +189,28 @@ app.get('/traerDenuncia/:id', async (req, res) => {
   }
 });
 
+app.get('/traerDenunciasCercanas', async (req, res) => {
+  const { lat, lon, distancia } = req.query;
+
+  console.log(`Ruta /traerDenunciasCercanas llamada con lat: ${lat}, lon: ${lon}, distancia: ${distancia}`);
+
+  if (!lat || !lon || !distancia) {
+    return res.status(400).json({ error: 'Faltan parámetros: lat, lon o distancia' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM obtener_denuncias_cercanas($1, $2, $3)`,
+      [lat, lon, distancia]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener denuncias cercanas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
