@@ -156,7 +156,7 @@ app.post('/run-sql', async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(
+    const result = await pool.query(
       sql
     );
     
