@@ -148,6 +148,24 @@ app.get('/denuncia/imagen/:id', async (req, res) => {
   }
 });
 
+app.post('/run-sql', async (req, res) => {
+  const { sql } = req.body;
+
+  if (!sql || typeof sql !== 'string') {
+    return res.status(400).json({ error: 'Falta o formato inválido en "sql"' });
+  }
+
+  try {
+    const [result] = await pool.query(
+      sql
+    );
+    
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
