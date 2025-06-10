@@ -167,8 +167,11 @@ app.post('/run-sql', async (req, res) => {
 });
 
 app.get('/traerDenuncia/:id', async (req, res) => {
+  
+  console.log('Ruta /traerDenuncia llamada con id:', req.params.id);
+  
   const { id } = req.params;
-
+  
   try {
     const result = await pool.query(
       `SELECT * FROM denuncia WHERE id = $1`,
