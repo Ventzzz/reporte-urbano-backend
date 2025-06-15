@@ -103,6 +103,49 @@ app.post('/hacerDenuncia', upload.single('imagen'), async (req, res) => {
   }
 });
 
+// Endpoint para actualizar una denuncia
+app.put('/actualizarDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+  const { tipoDenuncia, descripcion, usuarios_id } = req.body;
+  const imagen = req.file; // Si se actualiza la imagen
+
+  try {
+    // Verificar que la denuncia pertenece al usuario
+    const checkResult = await pool.query(
+      'SELECT usuarios_id FROM denuncia WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+
+    if (checkResult.rows[0].usuarios_id !== usuarios_id) {
+      return res.status(403).json({ error: 'No tienes permiso para editar esta denuncia' });
+    }
+
+    // Construir la consulta de actualización
+    let updateQuery = 'UPDATE denuncia SET tipoDenuncia = $1, descripcion = $2';
+    let queryParams = [tipoDenuncia, descripcion];
+
+    // Si hay una nueva imagen, incluirla en la actualización
+    if (imagen) {
+      updateQuery += ', imagen = $3';
+      queryParams.push(imagen.buffer);
+    }
+
+    updateQuery += ' WHERE id = $' + (queryParams.length + 1);
+    queryParams.push(id);
+
+    await pool.query(updateQuery, queryParams);
+    
+    res.json({ success: true, message: 'Denuncia actualizada exitosamente' });
+  } catch (error) {
+    console.error('Error al actualizar la denuncia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.get('/denuncia/imagen/', async (req, res) => {
   const { id } = req.params;
 
