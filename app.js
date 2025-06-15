@@ -254,6 +254,35 @@ app.get('/traerDenunciasCercanas', async (req, res) => {
   }
 });
 
+app.delete('/eliminarDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+  const { usuarios_id } = req.body; // Para verificar que el usuario es el dueño
+
+  try {
+    // Primero verificar que la denuncia pertenece al usuario
+    const checkResult = await pool.query(
+      'SELECT usuarios_id FROM denuncia WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+
+    if (checkResult.rows[0].usuarios_id !== usuarios_id) {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar esta denuncia' });
+    }
+
+    // Si todo está bien, eliminar la denuncia
+    await pool.query('DELETE FROM denuncia WHERE id = $1', [id]);
+    
+    res.json({ success: true, message: 'Denuncia eliminada exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar la denuncia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
