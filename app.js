@@ -283,38 +283,6 @@ app.delete('/eliminarDenuncia/:id', async (req, res) => {
   }
 });
 
-
-app.delete('/eliminarDenuncia/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await pool.query(
-      'DELETE FROM denuncia WHERE id = $1 RETURNING *',
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Denuncia no encontrada' 
-      });
-    }
-
-    res.json({ 
-      success: true, 
-      message: 'Denuncia eliminada exitosamente',
-      denuncia: result.rows[0]
-    });
-
-  } catch (error) {
-    console.error('Error al eliminar la denuncia:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error interno del servidor' 
-    });
-  }
-});
-
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
