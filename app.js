@@ -67,7 +67,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/hacerDenuncia', upload.single('imagen'), async (req, res) => {
+app.post('/hacerDenuncia', upload.single('imagen'), async (req, res) => { 
   const { tipoDenuncia, descripcion, latitud, longitud, username } = req.body;
   const imagen = req.file;
 
@@ -186,6 +186,38 @@ app.get('/traerDenuncia/:id', async (req, res) => {
   } catch (error) {
     console.error('Error al obtener la denuncia:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+app.delete('/eliminarDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM denuncia WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Denuncia no encontrada' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Denuncia eliminada exitosamente',
+      denuncia: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar la denuncia:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor' 
+    });
   }
 });
 
