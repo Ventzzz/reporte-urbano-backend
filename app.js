@@ -103,6 +103,49 @@ app.post('/hacerDenuncia', upload.single('imagen'), async (req, res) => {
   }
 });
 
+// Endpoint para actualizar una denuncia
+app.put('/actualizarDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+  const { tipoDenuncia, descripcion, usuarios_id } = req.body;
+  const imagen = req.file; // Si se actualiza la imagen
+
+  try {
+    // Verificar que la denuncia pertenece al usuario
+    const checkResult = await pool.query(
+      'SELECT usuarios_id FROM denuncia WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+
+    if (checkResult.rows[0].usuarios_id !== usuarios_id) {
+      return res.status(403).json({ error: 'No tienes permiso para editar esta denuncia' });
+    }
+
+    // Construir la consulta de actualización
+    let updateQuery = 'UPDATE denuncia SET tipoDenuncia = $1, descripcion = $2';
+    let queryParams = [tipoDenuncia, descripcion];
+
+    // Si hay una nueva imagen, incluirla en la actualización
+    if (imagen) {
+      updateQuery += ', imagen = $3';
+      queryParams.push(imagen.buffer);
+    }
+
+    updateQuery += ' WHERE id = $' + (queryParams.length + 1);
+    queryParams.push(id);
+
+    await pool.query(updateQuery, queryParams);
+    
+    res.json({ success: true, message: 'Denuncia actualizada exitosamente' });
+  } catch (error) {
+    console.error('Error al actualizar la denuncia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.get('/denuncia/imagen/', async (req, res) => {
   const { id } = req.params;
 
@@ -185,6 +228,57 @@ app.get('/traerDenuncia/:id', async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error al obtener la denuncia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.get('/traerDenunciasCercanas', async (req, res) => {
+  const { lat, lon, distancia } = req.query;
+
+  console.log(`Ruta /traerDenunciasCercanas llamada con lat: ${lat}, lon: ${lon}, distancia: ${distancia}`);
+
+  if (!lat || !lon || !distancia) {
+    return res.status(400).json({ error: 'Faltan parámetros: lat, lon o distancia' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM obtener_denuncias_cercanas($1, $2, $3)`,
+      [lat, lon, distancia]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener denuncias cercanas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.delete('/eliminarDenuncia/:id', async (req, res) => {
+  const { id } = req.params;
+  const { usuarios_id } = req.body; // Para verificar que el usuario es el dueño
+
+  try {
+    // Primero verificar que la denuncia pertenece al usuario
+    const checkResult = await pool.query(
+      'SELECT usuarios_id FROM denuncia WHERE id = $1',
+      [id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+
+    if (checkResult.rows[0].usuarios_id !== usuarios_id) {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar esta denuncia' });
+    }
+
+    // Si todo está bien, eliminar la denuncia
+    await pool.query('DELETE FROM denuncia WHERE id = $1', [id]);
+    
+    res.json({ success: true, message: 'Denuncia eliminada exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar la denuncia:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
